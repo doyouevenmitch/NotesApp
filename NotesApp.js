@@ -14,11 +14,8 @@ var NotesApp = (function() {
         tx.executeSql('DROP TABLE IF EXISTS Notes');
         tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (id AUTO_INCREMENT PRIMARY KEY, text, date_created, date_modified)');
 
-        //var formattedDate = new Date().dateFormat('mmm dd, yyyy h:mm TT');
-        var sysDate = new Date();
-
-        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("yolo", "' + sysDate + '")');
-        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("swag", "' + sysDate + '")');
+        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("yolo", (SELECT datetime("now")))');
+        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("swag", (SELECT datetime("now")))');
     }
 
     // Query the database
@@ -39,8 +36,9 @@ var NotesApp = (function() {
 
         var len = results.rows.length;
 
-        for (var i = 0; i < len; i++)
+        for (var i = 0; i < len; i++) {
             console.log("Row " + (i + 1) + ": " + results.rows.item(i).date_created);
+        }
 
     }
 
