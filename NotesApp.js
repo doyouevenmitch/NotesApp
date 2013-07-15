@@ -8,14 +8,29 @@ var NotesApp = (function() {
     //document.addEventListener("deviceready", onDeviceReady, false);
     }
 
+    // PhoneGap is ready
+    //
+    function onDeviceReady() {
+        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+        db.transaction(createTable, errorCB);
+    }
+
     // Populate the database 
     //
-    function populateDB(tx) {
+    function createTable(tx) {
         tx.executeSql('DROP TABLE IF EXISTS Notes');
         tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (id AUTO_INCREMENT PRIMARY KEY, text, date_created, date_modified)');
+    }
 
-        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("yolo", (SELECT datetime("now")))');
-        tx.executeSql('INSERT INTO Notes (text, date_created) VALUES ("swag", (SELECT datetime("now")))');
+    pub.submitNote = function() {
+        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+        db.transaction(insertNote, errorCB, successCB);
+    }
+
+    function insertNote(tx) {
+        var text = document.getElementById("text").value;
+        console.log("textarea text: " + text);
+        tx.executeSql('INSERT INTO Notes (text, date_created, date_modified) VALUES ("' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))');
     }
 
     // Query the database
@@ -37,7 +52,8 @@ var NotesApp = (function() {
         var len = results.rows.length;
 
         for (var i = 0; i < len; i++) {
-            console.log("Row " + (i + 1) + ": " + results.rows.item(i).date_created);
+            var row = results.rows.item(i);
+            console.log("Row " + (i + 1) + ": " + row.text + " " + row.date_created + " " + row.date_modified);
         }
 
     }
@@ -55,12 +71,7 @@ var NotesApp = (function() {
         db.transaction(queryDB, errorCB);
     }
 
-    // PhoneGap is ready
-    //
-    function onDeviceReady() {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        db.transaction(populateDB, errorCB, successCB);
-    }
+    
         
 return pub;
 }());
