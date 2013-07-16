@@ -19,15 +19,15 @@ var NotesApp = (function() {
     //
     function createTable(tx) {
         tx.executeSql('DROP TABLE IF EXISTS Notes');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (id INTEGER PRIMARY KEY, text, date_created, date_modified)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (name PRIMARY KEY, text, date_created, date_modified)');
     }
 
-    pub.submitNote = function() {
+    pub.submitNote = function(type) {
         var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        //if (type == "add")
+        if (type == "add")
             db.transaction(insertNote, errorCB, successCB);
-        //else
-         //   db.transaction(updateNote, errorCB, successCB);
+        else
+            db.transaction(updateNote, errorCB, successCB);
     }
 
     pub.submitUpdate = function() {
@@ -37,12 +37,14 @@ var NotesApp = (function() {
 
     function insertNote(tx) {
         var text = document.getElementById("text").value;
-        tx.executeSql('INSERT INTO Notes (text, date_created, date_modified) VALUES ("' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))');
+        var name = document.getElementById("name").value;
+        tx.executeSql('INSERT INTO Notes (name, text, date_created, date_modified) VALUES ("' + name + '", "' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))', [], querySuccess, errorCB);
     }
 
     function updateNote(tx) {
+        var name = document.getElementById("name").value;
         var text = document.getElementById("text").value;
-        tx.executeSql('UPDATE Notes SET text="' + text + '", date_modified=(SELECT datetime("now")) WHERE id=1');
+        tx.executeSql('UPDATE Notes SET text="' + text + '", date_modified=(SELECT datetime("now")) WHERE name="' + name + '"', [], querySuccess, errorCB);
     }
 
     // Query the database
@@ -57,15 +59,15 @@ var NotesApp = (function() {
         // this will be empty since no rows were inserted.
         //console.log("Insert ID = " + results.insertId);
         // this will be 0 since it is a select statement
-        //console.log("Rows Affected = " + results.rowAffected);
+        console.log("Rows Affected = " + results.rowAffected);
         // the number of rows returned by the select statement
-        //console.log("Insert ID = " + results.rows.length);
+        console.log("Insert ID = " + results.rows.length);
 
         var len = results.rows.length;
-        console.log("\t\t text \t\t\t date_created \t\t\t date_modified");
+        console.log("\t\tname\t\ttext\t\t\tdate_created\t\t\tdate_modified");
         for (var i = 0; i < len; i++) {
             var row = results.rows.item(i);
-            console.log("Row " + (i + 1) + ":\t" + row.text + "\t\t" + row.date_created + "\t\t" + row.date_modified);
+            console.log("Row " + (i + 1) + ":\t" + row.name + "\t\t" + row.text + "\t\t" + row.date_created + "\t\t" + row.date_modified);
         }
         console.log("\n");
 
@@ -74,7 +76,7 @@ var NotesApp = (function() {
     // Transaction error callback
     //
     function errorCB(err) {
-        console.log("Error processing SQL: " + err.code);
+        console.log("Error processing SQL: " + err.message);
     }
 
     // Transaction success callback
