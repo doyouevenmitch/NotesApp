@@ -83,8 +83,6 @@ var NotesApp = (function() {
         var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
         db.transaction(queryDB, errorCB);
     }
-
-    
-        
+       
 return pub;
 }());
