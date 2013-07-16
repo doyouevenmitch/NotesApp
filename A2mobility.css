@@ -1,0 +1,57 @@
+<style type="text/css">
+/*By Jonathan Gawecki SID:13204633*/
+html, body {
+    height:100%;
+}
+
+h1 {
+    color: white;
+    text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000; 
+	font-family:Impact;
+	float:left;
+	padding-right:100px;
+}
+
+p {
+color: white;
+}
+
+#datePlacement {
+	float:center;
+	width:100%;
+	color:white;
+	background-color:grey;
+}
+
+#header {
+	float:right;
+	width:100%;
+	color:white;
+	background-color:silver;
+}
+
+.mainButtons input[type="submit"] {
+	height: 80px;
+	width: 400px;
+	display:inline-block;
+	color:#3399FF;
+	font-family:Impact;
+	font-size:45px;
+	text-decoration:none;
+	text-shadow:1px 1px 0px #528ecc;
+	background-color:#FFFF99;
+}.mainButtons input[type="submit"]:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #FFFF99), color-stop(1, #FFFFCC) );
+	background:-moz-linear-gradient( center top, #FFFF99 5%, #FFFFCC 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFF99', endColorstr='#FFFFCC');
+	background-color:#FFFF99;
+}.mainButtons input[type="submit"]:active {
+	position:relative;
+	top:1px;
+}
+
+</style>
