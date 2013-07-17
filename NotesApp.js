@@ -5,6 +5,7 @@ var NotesApp = (function() {
     // Wait for PhoneGap to load
     //
     onDeviceReady();
+    createHistoryItem();
     //document.addEventListener("deviceready", onDeviceReady, false);
     }
 
@@ -70,7 +71,24 @@ var NotesApp = (function() {
             console.log("Row " + (i + 1) + ":\t" + row.name + "\t\t" + row.text + "\t\t" + row.date_created + "\t\t" + row.date_modified);
         }
         console.log("\n");
+    }
 
+    function createHistoryItem() {
+        var historyItem = document.createElement("div");
+        var name = document.createElement("div");
+        var date_modified = document.createElement("div");
+        var date_created = document.createElement("div");
+
+        historyItem.className = "history_item";
+        name.className = "item_name";
+        date_modified.className = "item_date_modified";
+        date_created.className = "item_date_created";
+
+        historyItem.appendChild(name);
+        historyItem.appendChild(date_modified);
+        historyItem.appendChild(date_created);
+
+        document.getElementById("history").appendChild(historyItem);
     }
 
     // Transaction error callback
