@@ -1,11 +1,13 @@
 var NotesApp = (function() {
     var pub = {};
 
-    pub.start = function() {
+    pub.start = function(page) {
     // Wait for PhoneGap to load
     //
     onDeviceReady();
-    createHistoryItem();
+
+    if (page == "home")
+        refreshHistory();
     //document.addEventListener("deviceready", onDeviceReady, false);
     }
 
@@ -19,58 +21,35 @@ var NotesApp = (function() {
     // Populate the database 
     //
     function createTable(tx) {
-        tx.executeSql('DROP TABLE IF EXISTS Notes');
+        //tx.executeSql('DROP TABLE IF EXISTS Notes');
         tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (name PRIMARY KEY, text, date_created, date_modified)');
     }
 
-    pub.submitNote = function(type) {
+    function refreshHistory() {
         var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        if (type == "add")
-            db.transaction(insertNote, errorCB, successCB);
-        else
-            db.transaction(updateNote, errorCB, successCB);
+        db.transaction(fetchHistory, errorCB);
     }
 
-    pub.submitUpdate = function() {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        db.transaction(updateNote, errorCB, successCB);
-    }
-
-    function insertNote(tx) {
-        var text = document.getElementById("text").value;
-        var name = document.getElementById("name").value;
-        tx.executeSql('INSERT INTO Notes (name, text, date_created, date_modified) VALUES ("' + name + '", "' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))', [], querySuccess, errorCB);
-    }
-
-    function updateNote(tx) {
-        var name = document.getElementById("name").value;
-        var text = document.getElementById("text").value;
-        tx.executeSql('UPDATE Notes SET text="' + text + '", date_modified=(SELECT datetime("now")) WHERE name="' + name + '"', [], querySuccess, errorCB);
-    }
-
-    // Query the database
-    //
-    function queryDB(tx) {
-        tx.executeSql('SELECT * FROM Notes', [], querySuccess, errorCB);
+    function fetchHistory(tx) {
+        tx.executeSql('SELECT * FROM Notes', [], fetchHistorySuccess, errorCB);
     }
 
     // Query the success callback
     //
-    function querySuccess(tx, results) {
-        // this will be empty since no rows were inserted.
-        //console.log("Insert ID = " + results.insertId);
-        // this will be 0 since it is a select statement
-        console.log("Rows Affected = " + results.rowAffected);
-        // the number of rows returned by the select statement
-        console.log("Insert ID = " + results.rows.length);
+    function fetchHistorySuccess(tx, results) {
+        var length = results.rows.length;
 
-        var len = results.rows.length;
-        console.log("\t\tname\t\ttext\t\t\tdate_created\t\t\tdate_modified");
-        for (var i = 0; i < len; i++) {
+        for(var i = 0; i < length; i++) {
             var row = results.rows.item(i);
-            console.log("Row " + (i + 1) + ":\t" + row.name + "\t\t" + row.text + "\t\t" + row.date_created + "\t\t" + row.date_modified);
+            printHistory(row, length)
         }
-        console.log("\n");
+    }
+
+    function printHistory(row, length) {
+        var historyItem = createHistoryItem();
+        setHistoryItemProperties(historyItem, row);
+        document.getElementById("history").appendChild(historyItem);
+
     }
 
     function createHistoryItem() {
@@ -79,29 +58,90 @@ var NotesApp = (function() {
         var date_modified = document.createElement("div");
         var date_created = document.createElement("div");
 
-        historyItem.className = "history_item";
         name.className = "item_name";
         date_modified.className = "item_date_modified";
         date_created.className = "item_date_created";
 
+
         historyItem.appendChild(name);
         historyItem.appendChild(date_modified);
         historyItem.appendChild(date_created);
-
-        document.getElementById("history").appendChild(historyItem);
+        
+        return historyItem;
     }
 
-    // Transaction error callback
-    //
+    function setHistoryItemProperties(historyItem, row) {
+        var name = historyItem.firstChild;
+        var date_modified = historyItem.firstChild.nextSibling;
+        var date_created = historyItem.firstChild.nextSibling.nextSibling;
+
+        historyItem.onclick = function() {pub.openNote(row.name);};
+        historyItem.className = "historyItem";
+        historyItem.id = row.name;
+
+        name.className = "item_name";
+        date_modified.className = "item_date_modified";
+        date_created.className = "item_date_created";
+
+        name.innerHTML = row.name;
+        date_modified.innerHTML = row.date_modified;
+        date_created.innerHTML = row.date_created;
+    }
+
+    pub.openNote = function(name) {
+        window.location.assign('NotesApp.html');
+        populateNote(name);
+    }
+
+    function populateNote(name) {
+        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+        db.transaction(fetchNote(name), errorCB);
+    }
+
+    function fetchNote(name) {
+        return function(tx) {
+            tx.executeSql('SELECT * FROM Notes WHERE name = "' + name + '"', [], printNote, errorCB);
+        };
+    }
+
+    function printNote(tx, results) {
+        var name = document.getElementById("name");
+        var text = document.getElementById("text");
+
+        name.value = results.rows.item(0).name;
+        text.value = results.rows.item(0).text;
+    }
+
+    pub.submitNote = function(type) {
+        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+        if (type == "add")
+            db.transaction(insertNote, errorCB);
+        else
+            db.transaction(updateNote, errorCB);
+    }
+
+    function insertNote(tx) {
+        var text = document.getElementById("text").value;
+        var name = document.getElementById("name").value;
+        tx.executeSql('INSERT INTO Notes (name, text, date_created, date_modified) VALUES ("' + name + '", "' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))', [], addSuccess, errorCB);
+    }
+
+    function updateNote(tx) {
+        var name = document.getElementById("name").value;
+        var text = document.getElementById("text").value;
+        tx.executeSql('UPDATE Notes SET text="' + text + '", date_modified=(SELECT datetime("now")) WHERE name="' + name + '"', [], updateSuccess, errorCB);
+    }
+
+    function addSuccess(tx, results) {
+        console.log("add success");
+    }
+
+    function updateSuccess(tx, results) {
+        console.log("update success");
+    }
+
     function errorCB(err) {
         console.log("Error processing SQL: " + err.message);
-    }
-
-    // Transaction success callback
-    //
-    function successCB() {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        db.transaction(queryDB, errorCB);
     }
        
 return pub;

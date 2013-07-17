@@ -7,7 +7,7 @@
     <!--<link rel="stylesheet" type="text/css" href="Normalise.css" />-->
     <link rel="stylesheet" type="text/css" href="NotesApp.css" />
 </head>
-<body onload="NotesApp.start();">
+<body onload="NotesApp.start('note');">
 	<h1>Notes!</h1>
 
 	<input type="text" id="name" />
@@ -16,6 +16,7 @@
 	<br />
 	<button id="add" onclick="NotesApp.submitNote('add');">Add</button>
 	<button id="update" onclick="NotesApp.submitUpdate('update');">Update</button>
+	<a id="cancel" href="index.html">Cancel</a>
 	
 </body>
 <script src="NotesApp.js"></script>
