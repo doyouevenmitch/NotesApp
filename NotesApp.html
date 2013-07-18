@@ -8,16 +8,21 @@
     <link rel="stylesheet" type="text/css" href="NotesApp.css" />
 </head>
 <body onload="NotesApp.start('note');">
-	<h1>Notes!</h1>
-
-	<input type="text" id="name" />
+<div id="notePage">
+	<div id = "header1">
+	<button class="butt" id="add" onclick="NotesApp.submitNote('add');">Add</button>
+	<button class="butt" id="update" onclick="NotesApp.submitUpdate('update');">Update</button>
+	<a class="butt" id="cancel" href="index.html">Cancel</a>	
+	</div><br />
+	
+	<div id = "header2">
+	<input type="text" id="name" placeholder="Enter your heading here"/>
+	
+	
 	<br />
 	<textarea id="text"></textarea>
 	<br />
-	<button id="add" onclick="NotesApp.submitNote('add');">Add</button>
-	<button id="update" onclick="NotesApp.submitUpdate('update');">Update</button>
-	<a id="cancel" href="index.html">Cancel</a>
-	
+</div>
 </body>
 <script src="NotesApp.js"></script>
 </html>
