@@ -4,34 +4,32 @@ var NotesApp = (function() {
     var itemID = 0;
 
     pub.start = function() {
-    // Wait for PhoneGap to load
-    //
-    $("#notePage").hide()
-    onDeviceReady();
-    refreshHistory();
-    //document.addEventListener("deviceready", onDeviceReady, false);
+        $("#notePage").hide()
+        onDeviceReady();
+        pub.refreshHistory("date_modified");
+        //document.addEventListener("deviceready", onDeviceReady, false);
     }
 
     // PhoneGap is ready
-    //
     function onDeviceReady() {
         db.transaction(createTable, errorCB);
     }
 
-    // Populate the database 
-    //
+    // Populate the database
     function createTable(tx) {
         //tx.executeSql('DROP TABLE IF EXISTS Notes');
         tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (ID INTEGER PRIMARY KEY AUTOINCREMENT, name UNIQUE, text, date_created, date_modified)');
     }
 
-    function refreshHistory() {
+    pub.refreshHistory = function(column) {
         $("#history").empty();
-        db.transaction(fetchHistory, errorCB);
+        db.transaction(fetchHistory(column), errorCB);
     }
 
-    function fetchHistory(tx) {
-        tx.executeSql('SELECT * FROM Notes', [], fetchHistorySuccess, errorCB);
+    function fetchHistory(column) {
+        return function(tx) {
+            tx.executeSql('SELECT * FROM Notes ORDER BY ' + column + ' DESC', [], fetchHistorySuccess, errorCB);
+        }
     }
 
     // Query the success callback
@@ -78,7 +76,7 @@ var NotesApp = (function() {
         date_created.className = "item_date_created";
 
         var date_modified_formatted = formatDate(row.date_modified);
-        var date_created_formatted = formatDate(row.date_modified);
+        var date_created_formatted = formatDate(row.date_created);
 
         name.innerHTML = row.name;
         date_modified.innerHTML = "Date Modified: " + date_modified_formatted;
@@ -95,11 +93,13 @@ var NotesApp = (function() {
     pub.newNote = function() {
         $("#homePage").hide();
         $("#notePage").show();
+        $("#delete").hide();
     }
 
     pub.openNote = function(name) {
         $("#homePage").hide();
         $("#notePage").show();
+        $("#delete").show();
         populateNote(name);
     }
 
@@ -127,8 +127,9 @@ var NotesApp = (function() {
     }
 
     pub.showHomepage = function () {
+        itemID = 0;
         clearNote();
-        refreshHistory();
+        pub.refreshHistory("date_modified");
         $("#homePage").show();
         $("#notePage").hide();
     }
@@ -138,36 +139,40 @@ var NotesApp = (function() {
         $("#text").val("");
     }
 
-    pub.submitNote = function(type) {
-        
-        if (type == "add")
+    pub.saveNote = function() {
+        if (itemID === 0)
             db.transaction(insertNote, errorCB);
         else
             db.transaction(updateNote, errorCB);
     }
 
+    pub.deleteNote = function() {
+        if (itemID != 0)
+            db.transaction(removeNote, errorCB);
+    }
+
     function insertNote(tx) {
         var text = document.getElementById("text").value;
         var name = document.getElementById("name").value;
-        tx.executeSql('INSERT INTO Notes (name, text, date_created, date_modified) VALUES ("' + name + '", "' + text + '", (SELECT datetime("now")), (SELECT datetime("now")))', [], addSuccess, errorCB);
+        tx.executeSql('INSERT INTO Notes (name, text, date_created, date_modified) VALUES ("' + name + '", "' + text + '", (SELECT datetime("now", "localtime")), (SELECT datetime("now", "localtime")))', [], querySuccess, errorCB);
     }
 
     function updateNote(tx) {
         var name = document.getElementById("name").value;
         var text = document.getElementById("text").value;
-        tx.executeSql('UPDATE Notes SET name = "' + name + '", text="' + text + '", date_modified=(SELECT datetime("now")) WHERE ID="' + itemID + '"', [], updateSuccess, errorCB);
+        tx.executeSql('UPDATE Notes SET name = "' + name + '", text="' + text + '", date_modified=(SELECT datetime("now", "localtime")) WHERE ID="' + itemID + '"', [], querySuccess, errorCB);
     }
 
-    function addSuccess(tx, results) {
-        pub.showHomepage();
+    function removeNote(tx) {
+        tx.executeSql('DELETE FROM Notes WHERE ID = ' + itemID, [], querySuccess, errorCB);
     }
 
-    function updateSuccess(tx, results) {
+    function querySuccess(tx, results) {
         pub.showHomepage();
     }
 
     function errorCB(err) {
-        console.log("Error processing SQL: " + err.message);
+        alert("Error processing SQL: " + err.message);
     }
        
 return pub;

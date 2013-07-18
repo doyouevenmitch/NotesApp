@@ -1,52 +1,39 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
-<!--By Jonathan Gawecki SID:13204633.-->
+<!--	by Jonathan Gawecki	SID:13204633
+		   Mitchell Hall	SID:13131210
+		   Darren Rudinger	SID:
+		   Dylan Brown		SID:
+-->
 <head>
-	<!--This is where everything is called from .-->
 	<meta charset="UTF-8">
 	<meta name="viewpoint" content="width=device-width, initial-scale=1.0"/>
-	
 	<title> Note application </title>
-	
 	<link rel="stylesheet" type="text/css" href="NotesApp.css">
-	
 </head>
 	
 <body onload="NotesApp.start();">
 	<div id="homePage">
-		<div id="header1">
-		<!-- <h1> Notepad </h1> -->
-		<div id="logo"> Notepad </div>
-		<!--<img title="mitch" src="mitch.jpg" />-->
-		<button class ="butt" onclick="NotesApp.newNote();">New note [+]</button>
+		<div class="header1">
+			<div id="logo"> Sticky Notes </div>
+			<button class ="butt" id="addButton" onclick="NotesApp.newNote();">New Note [+]</button>
 		</div>
-		
-		<div id="datePlacement">
-		<p> Sort by date and modified time </p>
-		<form id="dropbox">
-			<select>
-				<option value="Ascending">Ascending</option>
-				<option value="Descending">Descending</option>
-			</select>
-		</form>
+		<div id="sort">
+			<button type="button" class="sortButton" id="sortModified" onclick="NotesApp.refreshHistory('date_modified');">Sort by Date Modified</button>
+			<button type="button" class="sortButton" id="sortCreated" onclick="NotesApp.refreshHistory('date_created');">Sort by Date Created</button>
 		</div>
-		
 		<div id="history"></div>
 	</div>
 
 	<div id="notePage">
-		<div id = "header1">
-			<button class="butt" id="add" onclick="NotesApp.submitNote('add');">Add</button>
-			<button class="butt" id="update" onclick="NotesApp.submitNote('update');">Update</button>
+		<div class="header1">
 			<button class="butt" id="cancel" onclick="NotesApp.showHomepage();">Cancel</button>	
+			<button class="butt" id="save" onclick="NotesApp.saveNote();">Save</button>
+			<button class="butt" id="delete" onclick="NotesApp.deleteNote();">Delete</button>
 		</div><br />
-		
-		<div id = "header2">
-		<input type="text" id="name" placeholder="Enter your heading here"/>
-		
-		
-		<br />
-		<textarea id="text"></textarea>
-		<br />
+		<div class="input">
+			<input type="text" id="name" placeholder="Enter your heading here" maxlength="25"/><br />
+			<textarea id="text"></textarea><br />
+		</div>
 	</div>
 	
 	<script src="NotesApp.js" type="text/javascript"></script>
