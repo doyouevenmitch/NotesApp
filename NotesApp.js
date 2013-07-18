@@ -1,5 +1,7 @@
 var NotesApp = (function() {
     var pub = {};
+    var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+    var itemID = 0;
 
     pub.start = function() {
     // Wait for PhoneGap to load
@@ -13,7 +15,6 @@ var NotesApp = (function() {
     // PhoneGap is ready
     //
     function onDeviceReady() {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
         db.transaction(createTable, errorCB);
     }
 
@@ -21,13 +22,11 @@ var NotesApp = (function() {
     //
     function createTable(tx) {
         //tx.executeSql('DROP TABLE IF EXISTS Notes');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (name PRIMARY KEY, text, date_created, date_modified)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Notes (ID INTEGER PRIMARY KEY AUTOINCREMENT, name UNIQUE, text, date_created, date_modified)');
     }
 
     function refreshHistory() {
         $("#history").empty();
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
-        $("#history").innerHTML = "";
         db.transaction(fetchHistory, errorCB);
     }
 
@@ -58,11 +57,6 @@ var NotesApp = (function() {
         var date_modified = document.createElement("div");
         var date_created = document.createElement("div");
 
-        name.className = "item_name";
-        date_modified.className = "item_date_modified";
-        date_created.className = "item_date_created";
-
-
         historyItem.appendChild(name);
         historyItem.appendChild(date_modified);
         historyItem.appendChild(date_created);
@@ -83,9 +77,19 @@ var NotesApp = (function() {
         date_modified.className = "item_date_modified";
         date_created.className = "item_date_created";
 
+        var date_modified_formatted = formatDate(row.date_modified);
+        var date_created_formatted = formatDate(row.date_modified);
+
         name.innerHTML = row.name;
-        date_modified.innerHTML = row.date_modified;
-        date_created.innerHTML = row.date_created;
+        date_modified.innerHTML = "Date Modified: " + date_modified_formatted;
+        date_created.innerHTML = "Date Created: " + date_created_formatted;
+    }
+
+    function formatDate(date) {
+        var datePart = date.substr(2,8).split("-").reverse().join("/");
+        var timePart = date.substr(11,5);
+
+        return datePart + " " + timePart;
     }
 
     pub.newNote = function() {
@@ -100,17 +104,21 @@ var NotesApp = (function() {
     }
 
     function populateNote(name) {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
         db.transaction(fetchNote(name), errorCB);
     }
 
     function fetchNote(name) {
         return function(tx) {
-            tx.executeSql('SELECT * FROM Notes WHERE name = "' + name + '"', [], printNote, errorCB);
+            tx.executeSql('SELECT * FROM Notes WHERE name = "' + name + '"', [], processNote, errorCB);
         };
     }
 
-    function printNote(tx, results) {
+    function processNote(tx, results) {
+        itemID = results.rows.item(0).ID;
+        printNote(results);
+    }
+
+    function printNote(results) {
         var name = document.getElementById("name");
         var text = document.getElementById("text");
 
@@ -126,12 +134,12 @@ var NotesApp = (function() {
     }
 
     function clearNote() {
-        $("#name").empty();
-        $("#text").empty();
+        $("#name").val("");
+        $("#text").val("");
     }
 
     pub.submitNote = function(type) {
-        var db = window.openDatabase("NotesDB", "1.0", "Notes App", 2 * 1000 * 1000);
+        
         if (type == "add")
             db.transaction(insertNote, errorCB);
         else
@@ -147,18 +155,15 @@ var NotesApp = (function() {
     function updateNote(tx) {
         var name = document.getElementById("name").value;
         var text = document.getElementById("text").value;
-        console.log(text);
-        tx.executeSql('UPDATE Notes SET text="' + text + '", date_modified=(SELECT datetime("now")) WHERE name="' + name + '"', [], updateSuccess, errorCB);
+        tx.executeSql('UPDATE Notes SET name = "' + name + '", text="' + text + '", date_modified=(SELECT datetime("now")) WHERE ID="' + itemID + '"', [], updateSuccess, errorCB);
     }
 
     function addSuccess(tx, results) {
         pub.showHomepage();
-        console.log("add success");
     }
 
     function updateSuccess(tx, results) {
         pub.showHomepage();
-        console.log("update success");
     }
 
     function errorCB(err) {
